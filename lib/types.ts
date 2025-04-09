@@ -7,16 +7,14 @@ export interface Team {
   numberForeign: number;
   colorCode: string;
 }
-
 export interface Player {
   playerId: string;
   playerName: string;
-  rating: number;
-  boughtAt: number;
-  basePrice: number; // Added base price
-  isSold: boolean;
-  pool: string;
-  soldto: string;
   role: string;
   Nationality: string;
+  basePrice: number;
+  rating: number;
+  pool: number;
+  isSold: boolean;
+  boughtAt?: number;
 }

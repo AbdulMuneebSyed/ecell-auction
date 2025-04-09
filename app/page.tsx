@@ -23,7 +23,7 @@ export default function Home() {
           <Link href="/players" className="block">
             <div className="flex justify-between items-center p-4 border-l-4 border-purple-500 bg-white hover:bg-gray-50 transition-colors rounded">
               <span className="font-medium text-gray-900">
-                Upcomming Players
+                Player List
               </span>
               <ChevronRight className="h-4 w-4 text-gray-500" />
             </div>
@@ -32,7 +32,7 @@ export default function Home() {
           <Link href="/teams" className="block">
             <div className="flex justify-between items-center p-4 border-l-4 border-orange-500 bg-white hover:bg-gray-50 transition-colors rounded">
               <span className="font-medium text-gray-900">
-                Teams and thier players
+                Teams and their players
               </span>
               <ChevronRight className="h-4 w-4 text-gray-500" />
             </div>

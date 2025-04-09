@@ -1,19 +1,76 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Star } from "lucide-react";
-import { getTeamById, getTeamPlayers } from "@/lib/api";
 
+// Define interfaces for the data types
+interface Team {
+  teamID: string;
+  teamName: string;
+  teamImage?: string;
+  numberofplayers: number;
+  numberForeign: number;
+  budget?: number;
+}
+
+interface Player {
+  playerId: string;
+  playerName: string;
+  Nationality: string;
+  role: string;
+  pool: string;
+  rating: number;
+  boughtAt: number;
+  teamID?: string;
+}
+
+// This function gets called at request time
 export default async function TeamDetailsPage({
   params,
 }: {
   params: { teamId: string };
 }) {
-  const team = await getTeamById(params.teamId);
-  const players = await getTeamPlayers(params.teamId);
+  // Fetch team data
+  const teamResponse = await fetch("http://192.168.64.92:8080/api/teams", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ teamID: params.teamId }),
+    cache: "no-store", // For dynamic data
+  });
+
+  if (!teamResponse.ok) {
+    return <div>Failed to load team data</div>;
+  }
+
+  const teamData = await teamResponse.json();
+  const team: Team = teamData.data;
 
   if (!team) {
     return <div>Team not found</div>;
   }
+
+  // Fetch sold players for this team
+  const playersResponse = await fetch(
+    "http://192.168.64.92:8080/api/sold-players",
+    {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    }
+  );
+
+  if (!playersResponse.ok) {
+    return <div>Failed to load player data</div>;
+  }
+
+  const playersData = await playersResponse.json();
+  // Filter players that belong to this team
+  const players: Player[] = playersData.data.filter(
+    (player: Player) => player.teamID === params.teamId
+  );
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
@@ -43,6 +100,11 @@ export default async function TeamDetailsPage({
               <div>
                 <span>Foreign Players: {team.numberForeign}</span>
               </div>
+              {team.budget !== undefined && (
+                <div className="ml-6">
+                  <span>Remaining Budget: ₹{team.budget}Cr</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
