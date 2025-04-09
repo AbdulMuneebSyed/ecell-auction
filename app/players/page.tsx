@@ -1,5 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
+import { RefreshCw, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export default function PlayerPagination() {
   interface Player {
@@ -15,6 +17,7 @@ export default function PlayerPagination() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -53,6 +56,7 @@ export default function PlayerPagination() {
     } finally {
       console.log("Players fetched:", players);
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -68,7 +72,12 @@ export default function PlayerPagination() {
     }
   };
 
-  if (loading) {
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    fetchPlayers(currentPage);
+  };
+
+  if (loading && !isRefreshing) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-lg font-medium text-blue-600">
@@ -93,13 +102,43 @@ export default function PlayerPagination() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold mb-4 text-center">Player List</h2>
+    <div className="max-w-4xl mx-auto px-4 py-6">
+      {/* Back Button */}
+      <div className="mb-6">
+        <Link
+          href="/" // Update this to your desired back destination
+          className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4 mr-1" />
+          Back 
+        </Link>
+      </div>
+
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">Player List</h2>
+        <button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="flex items-center gap-2 px-3 py-2 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+          aria-label="Refresh player list"
+        >
+          <RefreshCw
+            className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+          />
+          <span>{isRefreshing ? "Refreshing..." : "Refresh"}</span>
+        </button>
+      </div>
+
+      {isRefreshing && (
+        <div className="w-full bg-blue-50 text-blue-600 text-center py-2 mb-4 rounded">
+          Refreshing player data...
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {players.map((player) => (
           <div
-            key={player.playerId}
+            key={player.playerId + player.playerName}
             className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow"
           >
             <div className="font-medium text-lg">{player.playerName}</div>

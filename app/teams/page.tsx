@@ -8,6 +8,26 @@ export default async function TeamsPage() {
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-5xl mx-auto pt-12 px-6">
+        <Link
+          href="/"
+          className="inline-flex items-center text-gray-600 border-black/50 border-[1px] p-1 px-2 rounded-xl hover:text-gray-900 transition-colors"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-4 w-4 mr-1"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+          Back
+        </Link>
         <div className="flex items-center justify-center mb-16">
           <Image
             src="/images/ipl-logo.png"
@@ -36,7 +56,7 @@ export default async function TeamsPage() {
                     alt={team.teamName}
                     width={64}
                     height={64}
-                    className="object-cover rounded-full w-full h-full" 
+                    className="object-cover rounded-full w-full h-full"
                   />
                 </div>
                 <h2 className="text-center font-medium text-gray-800">

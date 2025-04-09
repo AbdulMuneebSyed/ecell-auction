@@ -1,154 +1,171 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Star } from "lucide-react";
 
-// Define interfaces for the data types
+// New data fetching function
 interface Team {
-  teamID: string;
   teamName: string;
   teamImage?: string;
-  numberofplayers: number;
-  numberForeign: number;
-  budget?: number;
+  colorCode: string;
+  numberofplayers?: number;
+  numberForeign?: number;
 }
 
 interface Player {
-  playerId: string;
+  _id: string;
   playerName: string;
   Nationality: string;
-  role: string;
-  pool: string;
-  rating: number;
-  boughtAt: number;
-  teamID?: string;
+  rating?: number;
+  role?: string;
+  boughtAt?: number;
+  pool?: string;
 }
 
-// This function gets called at request time
+interface TeamWithPlayersResponse {
+  success: boolean;
+  team?: Team;
+  players?: Player[];
+}
+
+async function getTeamWithPlayers(teamId: string): Promise<TeamWithPlayersResponse> {
+  try {
+    const response = await fetch(
+      `http://localhost:8080/api/teamsplayers`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ teamID: teamId }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch team data");
+    }
+
+    const data: TeamWithPlayersResponse = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching team with players:", error);
+    return { success: false };
+  }
+}
+
 export default async function TeamDetailsPage({
   params,
 }: {
   params: { teamId: string };
 }) {
-  // Fetch team data
-  const teamResponse = await fetch("http://192.168.64.92:8080/api/teams", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ teamID: params.teamId }),
-    cache: "no-store", // For dynamic data
-  });
-
-  if (!teamResponse.ok) {
-    return <div>Failed to load team data</div>;
+  const data = await getTeamWithPlayers(params.teamId);
+  console.log( data);
+  if (!data.success || !data.team) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+        <div className="text-center p-8">
+          <h1 className="text-2xl font-bold mb-4">Team not found</h1>
+          <Link
+            href="/teams"
+            className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Back to Teams
+          </Link>i
+        </div>
+      </div>
+    );
   }
 
-  const teamData = await teamResponse.json();
-  const team: Team = teamData.data;
-
-  if (!team) {
-    return <div>Team not found</div>;
-  }
-
-  // Fetch sold players for this team
-  const playersResponse = await fetch(
-    "http://192.168.64.92:8080/api/sold-players",
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      cache: "no-store",
-    }
-  );
-
-  if (!playersResponse.ok) {
-    return <div>Failed to load player data</div>;
-  }
-
-  const playersData = await playersResponse.json();
-  // Filter players that belong to this team
-  const players: Player[] = playersData.data.filter(
-    (player: Player) => player.teamID === params.teamId
-  );
-
+  const { team, players } = data;
+  const playersList = players || [];
   return (
-    <div className="min-h-screen bg-white text-gray-900">
-      <div className="max-w-4xl mx-auto p-6">
+    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+      <div className="max-w-4xl mx-auto px-4 py-8">
         <Link
           href="/teams"
-          className="inline-flex items-center text-gray-600 mb-8 hover:text-gray-900"
+          className="inline-flex items-center text-gray-600 dark:text-gray-400 mb-6 hover:text-gray-900 dark:hover:text-white"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Teams
+          <ArrowLeft className="h-4 w-4 mr-1" />
+          Back
         </Link>
 
-        <div className="flex items-center mb-12">
-          <Image
-            src={team.teamImage || "/placeholder.svg"}
+        <div className="flex items-center gap-4 mb-8">
+          {/* <Image
+            src={ "/placeholder.svg"}
             alt={team.teamName}
             width={80}
             height={80}
-            className="mr-6"
-          />
+            className="rounded-full"
+            style={{ backgroundColor: team.colorCode }}
+          /> */}
           <div>
-            <h1 className="text-3xl font-bold">{team.teamName}</h1>
-            <div className="flex mt-2 text-sm text-gray-600">
-              <div className="mr-6">
-                <span>Players: {team.numberofplayers}</span>
+            <h1 className="text-2xl font-bold">{team.teamName}</h1>
+            <div className="flex gap-4 mt-2 text-sm">
+              <div>
+                <span className="text-gray-500 dark:text-gray-400">
+                  Players:
+                </span>{" "}
+                {team.numberofplayers || 0}
               </div>
               <div>
-                <span>Foreign Players: {team.numberForeign}</span>
+                <span className="text-gray-500 dark:text-gray-400">
+                  Foreign:
+                </span>{" "}
+                {team.numberForeign || 0}
               </div>
-              {team.budget !== undefined && (
-                <div className="ml-6">
-                  <span>Remaining Budget: ₹{team.budget}Cr</span>
-                </div>
-              )}
             </div>
           </div>
         </div>
 
-        <h2 className="text-xl font-medium mb-6">Team Players</h2>
+        <h2 className="text-xl font-medium mb-4">Team Players</h2>
 
-        {players.length === 0 ? (
-          <div className="text-center p-6 bg-gray-50 rounded-md">
-            <p className="text-gray-500">No players bought yet</p>
+        {playersList.length === 0 ? (
+          <div className="text-center p-8 border border-gray-200 dark:border-gray-700 rounded-md">
+            <p className="text-gray-500 dark:text-gray-400">
+              No players bought yet
+            </p>
           </div>
         ) : (
-          <div className="divide-y">
-            {players.map((player) => (
-              <div
-                key={player.playerId}
-                className="py-4 flex justify-between items-center"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {playersList.map((player) => (
+              <Card
+                key={player._id}
+                className="p-4 border-t-4 hover:shadow-md transition-shadow"
+                style={{ borderTopColor: team.colorCode }}
               >
-                <div>
-                  <div className="flex items-center">
-                    <h3 className="font-medium">{player.playerName}</h3>
-                    <span
-                      className={`ml-3 text-xs px-2 py-1 rounded-full ${
-                        player.Nationality === "Indian"
-                          ? "bg-blue-50 text-blue-700"
-                          : "bg-orange-50 text-orange-700"
-                      }`}
-                    >
-                      {player.Nationality}
-                    </span>
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-medium">{player.playerName}</h3>
+                  <Badge
+                    className={
+                      player.Nationality === "Indian"
+                        ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
+                        : "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100"
+                    }
+                  >
+                    {player.Nationality}
+                  </Badge>
+                </div>
+                <div className="flex items-center text-sm text-gray-600 dark:text-gray-300 mb-2">
+                  <Star className="h-3 w-3 text-yellow-500 fill-yellow-500 mr-1" />
+                  <span>{player.rating || "N/A"}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-sm">
+                  <div>
+                    <p className="text-gray-500 dark:text-gray-400">Role</p>
+                    <p>{player.role || "N/A"}</p>
                   </div>
-                  <div className="mt-1 text-sm text-gray-600">
-                    {player.role} · Pool: {player.pool}
+                  <div>
+                    <p className="text-gray-500 dark:text-gray-400">Price</p>
+                    <p>₹{player.boughtAt || 0}Cr</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-500 dark:text-gray-400">Pool</p>
+                    <p>{player.pool || "N/A"}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="flex items-center text-sm">
-                    <Star className="h-3 w-3 text-yellow-500 fill-yellow-500 mr-1" />
-                    <span>{player.rating}</span>
-                  </div>
-                  <div className="mt-1 text-sm font-medium">
-                    ₹{player.boughtAt}Cr
-                  </div>
-                </div>
-              </div>
+              </Card>
             ))}
           </div>
         )}
