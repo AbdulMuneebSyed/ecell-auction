@@ -35,7 +35,7 @@ export default function PlayerPagination() {
   const fetchPlayers = async (page: number): Promise<void> => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:8080/api/players", {
+      const response = await fetch("http://192.168.152.92:8080/api/players", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

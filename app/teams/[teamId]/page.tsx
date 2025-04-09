@@ -32,7 +32,7 @@ interface TeamWithPlayersResponse {
 async function getTeamWithPlayers(teamId: string): Promise<TeamWithPlayersResponse> {
   try {
     const response = await fetch(
-      `http://localhost:8080/api/teamsplayers`,
+      `http://192.168.152.92:8080/api/teamsplayers`,
       {
         method: "POST",
         headers: {
